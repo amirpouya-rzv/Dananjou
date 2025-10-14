@@ -43,17 +43,18 @@ export default function ConfirmModal({
             {/* buttons */}
             <div className="flex justify-center gap-6 pb-6">
               <button
-                onClick={() => onCancel && onCancel()}
-                className="text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 shadow-lg font-medium rounded-lg text-sm px-10 py-2.5"
-              >
-                {cancelText}
-              </button>
-              <button
                 onClick={() => onConfirm && onConfirm()}
                 className="text-white bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 shadow-lg font-medium rounded-lg text-sm px-10 py-2.5"
               >
                 {confirmText}
               </button>
+              <button
+                onClick={() => onCancel && onCancel()}
+                className="text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 shadow-lg font-medium rounded-lg text-sm px-10 py-2.5"
+              >
+                {cancelText}
+              </button>
+              
             </div>
           </motion.div>
         </motion.div>

@@ -1,5 +1,5 @@
-"use client"
-import React, { useState, ReactNode } from 'react';
+"use client";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,112 +8,183 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import AppInput from '@/components/shared/AppInput';
-import AppButton from '@/components/shared/AppButton';
-import AppSelect from '@/components/shared/AppSelect';
-import { addDomainServices } from '@/app/services/domain';
-import { adddomainType } from '@/app/types/domain';
-import { errorToast, successToast } from '@/app/utils/toastUtils';
+import AppInput from "@/components/shared/AppInput";
+import AppButton from "@/components/shared/AppButton";
+import AppSelect from "@/components/shared/AppSelect";
+import { addDomainServices, editDomainServices } from "@/app/services/domain";
+import { adddomainType, domainType } from "@/app/types/domain";
+import { errorToast, successToast } from "@/app/utils/toastUtils";
+import { LiaSpinnerSolid } from "react-icons/lia";
 
-type AddDomainProps = {
-  triggerIcon?: ReactNode;
-  triggerClassName?: string;
-  dialogTitle?: string;
-  submitTitle?: string;
-};
-
-const AddDomain: React.FC<AddDomainProps> = ({
-  triggerIcon,
-  triggerTitle = "",
-  triggerSubtitle = "",
-  triggerClassName = "",
-  dialogTitle = "Add Domain",
-  submitTitle = "",
+const AddDomain = ({
+  open,
+  setOpen,
+  selecteItem,
+  setSelectedItem,
+  refreshList,
+}: {
+  open: boolean;
+  setOpen: (isOpen: boolean) => void;
+  setSelectedItem?: React.Dispatch<React.SetStateAction<domainType>>;
+  selecteItem?: domainType;
+  refreshList?: () => void;
 }) => {
-
-  const [data, setData] = useState<adddomainType>({
+  // مقدار اولیه فرم
+  const initailvalues = {
     domain: "",
-    isActive: false,
-    status: 0,
-  });
+    status: "",
+    isActive: "",
+  };
 
-  // post domain
-  const PostDomain = async () => {
+  const [data, setData] = useState<adddomainType>(initailvalues);
+  const [loading, setLoading] = useState(false);
+
+  // ✅ اعتبارسنجی فرم
+  const validateForm = () => {
+    // اجباری بودن دامنه
+    if (!data.domain.trim()) {
+      errorToast("Please enter a domain name.");
+      return false;
+    }
+
+    // فرمت دقیق دامنه
+    const domainRegex = /^www\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
+    if (!domainRegex.test(data.domain.trim())) {
+      errorToast("Invalid domain format. Example: www.example.com");
+      return false;
+    }
+
+    // اعتبارسنجی وضعیت
+    if (![1, 2, 3].includes(data.status)) {
+      errorToast("Please select a valid status (Pending, Verified, Rejected).");
+      return false;
+    }
+
+    // اعتبارسنجی فعال بودن
+    if (typeof data.isActive !== "boolean") {
+      errorToast("Please choose whether the domain is active or inactive.");
+      return false;
+    }
+
+    return true;
+  };
+
+  // ✅ ارسال فرم
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
 
     try {
-      const res = await addDomainServices(data);
-      successToast("Domain added successfully");
-      if (res.status === 201) {
+      setLoading(true);
+      const res = selecteItem
+        ? await editDomainServices(selecteItem.id, data)
+        : await addDomainServices(data);
+
+      if (res.status === 200 || res.status === 201) {
+        successToast(
+          selecteItem
+            ? "Domain edited successfully"
+            : "Domain added successfully"
+        );
+        setOpen(false);
+        setData(initailvalues);
+        refreshList?.();
       } else {
-        errorToast("Error adding domain");
+        errorToast("Error while saving domain.");
       }
     } catch (err) {
-      errorToast("Request failed");
+      errorToast("Unexpected error occurred.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  
+  // ✅ مقداردهی اولیه و ویرایش
+  useEffect(() => {
+    if (selecteItem) {
+      setData({
+        domain: selecteItem.domain || "",
+        status: selecteItem.status ? selecteItem.status : "",
+        isActive:
+          typeof selecteItem.isActive === "boolean"
+            ? selecteItem.isActive
+            : selecteItem.isActive === "true",
+      });
+    } else {
+      setData(initailvalues);
+    }
+  }, [selecteItem]);
 
-  
   return (
-    <Dialog>
-      <DialogTrigger className={triggerClassName}>
-        <div className="flex items-center gap-3">
-          {triggerIcon && (
-            <div className="bg-white/30 p-2 rounded-full flex items-center justify-center">
-              {triggerIcon}
-            </div>
-          )}
-          <div className="flex flex-col text-left">
-            <span className="font-semibold text-gray-900">{triggerTitle}</span>
-            {triggerSubtitle && (
-              <span className="text-xs text-gray-700 opacity-80">{triggerSubtitle}</span>
-            )}
-          </div>
-        </div>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger
+        className="text-emerald-700 font-semibold border border-emerald-700 px-4 py-2 rounded-md hover:bg-emerald-700 hover:text-white transition"
+        onClick={() => setSelectedItem?.()}
+      >
+        + Add Domain
       </DialogTrigger>
 
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className='mb-5'>{dialogTitle}</DialogTitle>
-          <DialogDescription />
+          <DialogTitle>
+            {selecteItem ? "Edit Domain" : "Add Domain"}
+          </DialogTitle>
+          <DialogDescription>
+            Enter your domain information below.
+          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={PostDomain}>
+        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+          {/* Domain */}
           <AppInput
-            title='Domain:'
-            placeholder='Insert your domain'
+            title="Domain:"
+            placeholder="Insert your domain (e.g., www.example.com)"
             value={data.domain}
             onChange={(e) => setData({ ...data, domain: e.target.value })}
           />
 
+          {/* Status */}
           <AppSelect
-            defaultValue=''
-            label='Status:'
-            placeholder='Choose status'
+            label="Status:"
+            placeholder="Choose status"
             options={[
-              { label: 'Pending', value: '1' },
-              { label: 'Verified', value: '2' },
-              { label: 'Rejected', value: '3' },
+              { label: "Pending", value: "1" },
+              { label: "Verified", value: "2" },
+              { label: "Rejected", value: "3" },
             ]}
-            value={data.status.toString()}
-            onChange={(value) => setData({ ...data, status: parseInt(value) })}
+            value={data.status !== "" ? data.status.toString() : ""}
+            onChange={(value) =>
+              setData({ ...data, status: parseInt(value) })
+            }
           />
 
+          {/* Activity */}
           <AppSelect
-            defaultValue=''
-            label='Active:'
-            placeholder='Choose activity'
+            label="Active:"
+            placeholder="Choose activity"
             options={[
-              { label: 'Active', value: 'true' },
-              { label: 'Inactive', value: 'false' },
+              { label: "Active", value: "true" },
+              { label: "Inactive", value: "false" },
             ]}
-            value={data.isActive ? 'true' : 'false'}
-            onChange={(value) => setData({ ...data, isActive: value === 'true' })}
+            value={data.isActive !== "" ? (data.isActive ? "true" : "false") : ""}
+            onChange={(value) =>
+              setData({ ...data, isActive: value === "true" })
+            }
           />
 
-          <AppButton title="Submit" type="submit"
-          
+          {/* Submit */}
+          <AppButton
+            title={
+              loading ? (
+                <span className="animate-spin inline-block">
+                  <LiaSpinnerSolid size={20} />
+                </span>
+              ) : (
+                "Submit"
+              )
+            }
+            type="submit"
+            disabled={loading}
           />
         </form>
       </DialogContent>
