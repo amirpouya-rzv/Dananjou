@@ -16,20 +16,24 @@ import { adddomainType, domainType } from "@/app/types/domain";
 import { errorToast, successToast } from "@/app/utils/toastUtils";
 import { LiaSpinnerSolid } from "react-icons/lia";
 
+interface AddDomainProps {
+  open: boolean;
+  setOpen: (isOpen: boolean) => void;
+  setSelectedItem?: React.Dispatch<React.SetStateAction<domainType>>;
+  selecteItem?: domainType;
+  refreshList?: () => void;
+  /** 🔹 متن دکمه بازکننده‌ی دیالوگ */
+  buttonLabel?: string | React.ReactNode;
+}
+
 const AddDomain = ({
   open,
   setOpen,
   selecteItem,
   setSelectedItem,
   refreshList,
-}: {
-  open: boolean;
-  setOpen: (isOpen: boolean) => void;
-  setSelectedItem?: React.Dispatch<React.SetStateAction<domainType>>;
-  selecteItem?: domainType;
-  refreshList?: () => void;
-}) => {
-  // مقدار اولیه فرم
+  buttonLabel = "+ Add Domain", // مقدار پیش‌فرض اگر نفرستی
+}: AddDomainProps) => {
   const initailvalues = {
     domain: "",
     status: "",
@@ -46,20 +50,17 @@ const AddDomain = ({
       return false;
     }
 
-    // rgex for domain
     const domainRegex = /^www\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
     if (!domainRegex.test(data.domain.trim())) {
       errorToast("Invalid domain format. Example: www.example.com");
       return false;
     }
 
-    // status validation
     if (![1, 2, 3].includes(data.status)) {
       errorToast("Please select a valid status (Pending, Verified, Rejected).");
       return false;
     }
 
-    // activity validation
     if (typeof data.isActive !== "boolean") {
       errorToast("Please choose whether the domain is active or inactive.");
       return false;
@@ -68,7 +69,7 @@ const AddDomain = ({
     return true;
   };
 
-  // submit form
+  // submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -98,7 +99,7 @@ const AddDomain = ({
     }
   };
 
-  // edit
+  // load edit data
   useEffect(() => {
     if (selecteItem) {
       setData({
@@ -120,7 +121,7 @@ const AddDomain = ({
         className="text-emerald-700 font-semibold border border-emerald-700 px-4 py-2 rounded-md hover:bg-emerald-700 hover:text-white transition"
         onClick={() => setSelectedItem?.()}
       >
-        + Add Domain
+        {buttonLabel}
       </DialogTrigger>
 
       <DialogContent>
@@ -134,7 +135,6 @@ const AddDomain = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-          {/* Domain */}
           <AppInput
             title="Domain:"
             placeholder="Insert your domain (e.g., www.example.com)"
@@ -142,7 +142,6 @@ const AddDomain = ({
             onChange={(e) => setData({ ...data, domain: e.target.value })}
           />
 
-          {/* Status */}
           <AppSelect
             label="Status:"
             placeholder="Choose status"
@@ -152,12 +151,9 @@ const AddDomain = ({
               { label: "Rejected", value: "3" },
             ]}
             value={data.status !== "" ? data.status.toString() : ""}
-            onChange={(value) =>
-              setData({ ...data, status: parseInt(value) })
-            }
+            onChange={(value) => setData({ ...data, status: parseInt(value) })}
           />
 
-          {/* Activity */}
           <AppSelect
             label="Active:"
             placeholder="Choose activity"
@@ -165,13 +161,12 @@ const AddDomain = ({
               { label: "Active", value: "true" },
               { label: "Inactive", value: "false" },
             ]}
-            value={data.isActive !== "" ? (data.isActive ? "true" : "false") : ""}
-            onChange={(value) =>
-              setData({ ...data, isActive: value === "true" })
+            value={
+              data.isActive !== "" ? (data.isActive ? "true" : "false") : ""
             }
+            onChange={(value) => setData({ ...data, isActive: value === "true" })}
           />
 
-          {/* Submit */}
           <AppButton
             title={
               loading ? (

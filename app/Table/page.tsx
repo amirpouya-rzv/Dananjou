@@ -12,6 +12,7 @@ import AddDomain from "../Header/_partials/AddDomain";
 import AppSelect from "@/components/shared/AppSelect";
 import SearchInput from "@/components/shared/SearchInput";
 import { PiSealWarningLight } from "react-icons/pi";
+import AppButton from "@/components/shared/AppButton";
 
 function Table() {
   const [open, setOpen] = useState(false);
@@ -185,7 +186,7 @@ function Table() {
 
                       {/* Created */}
                       <td className="text-[10px] sm:text-xs">
-                        {moment(value.createdDate).format("YYYY-MM-DD HH:mm")}
+                        {moment(value.createdDate).format("YYYY-MM-DD HH:mm A")}
                       </td>
 
                       {/* Actions */}
@@ -223,9 +224,9 @@ function Table() {
             </table>
           </div> :
           <div className="flex flex-col items-center justify-center py-20 text-center">
-          <span className="text-red-600">
-            <PiSealWarningLight size={40} color=""/>
-          </span>
+            <span className="text-red-600">
+              <PiSealWarningLight size={40} color="" />
+            </span>
 
             <h2 className="text-lg font-semibold text-red-700 dark:text-red-400">
               There is no domain yet
@@ -233,6 +234,14 @@ function Table() {
             <p className="text-gray-500 dark:text-gray-300 text-sm mt-1">
               Try adding a new domain to see results here.
             </p>
+            <span className="mt-3"><AddDomain
+              open={open}
+              setOpen={setOpen}
+              selecteItem={selecteItem}
+              setSelectedItem={setSelectedItem}
+              refreshList={handleGetData}
+              buttonLabel={"Add Domain Here"}
+            /></span>
           </div>}
 
       {/* delete modal */}
