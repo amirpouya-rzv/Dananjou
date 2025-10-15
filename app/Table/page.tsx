@@ -11,22 +11,21 @@ import { successToast, errorToast } from "@/app/utils/toastUtils";
 import AddDomain from "../Header/_partials/AddDomain";
 import AppSelect from "@/components/shared/AppSelect";
 import SearchInput from "@/components/shared/SearchInput";
+import { PiSealWarningLight } from "react-icons/pi";
 
 function Table() {
-  // open edit modal
   const [open, setOpen] = useState(false);
   const [selecteItem, setSelectedItem] = useState<domainType>(null);
 
-  // state for domain data
   const [data, setData] = useState<domainType[]>([]);
-  const [mainData, setMainData] = useState<domainType[]>([]);
 
-  // search box
+  // search
+  const [mainData, setMainData] = useState<domainType[]>([]);
   const handlesearch = (e) => {
     setData(mainData.filter(u => u.domain.includes(e.target.value)));
   };
 
-  // get domain
+  // get data
   const handleGetData = async () => {
     const res = await getDomainServices();
     setData(res.results || []);
@@ -45,7 +44,6 @@ function Table() {
     setShowModal(true);
   };
 
-  // delete domain
   const handleConfirmDelete = async () => {
     if (deleteId === null) return;
     try {
@@ -75,147 +73,175 @@ function Table() {
   }, [data, activityFilter, statusFilter]);
 
   return (
-    <div className="p-5 items-center">
-      <div className="flex justify-between gap-5">
-        <AddDomain
-          open={open}
-          setOpen={setOpen}
-          selecteItem={selecteItem}
-          setSelectedItem={setSelectedItem}
-          refreshList={handleGetData}
-        />
+    <div className="p-3 sm:p-5">
+      {/* filter and search*/}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+
+        {/* add domain */}
+        <div className="w-auto pb-5 mt-5 border-b-2 md:border-b-0 md:w-auto">
+          <AddDomain
+            open={open}
+            setOpen={setOpen}
+            selecteItem={selecteItem}
+            setSelectedItem={setSelectedItem}
+            refreshList={handleGetData}
+          />
+        </div>
+
+        {/* activity */}
+        <div className="flex flex-col sm:flex-row flex-wrap justify-end gap-3 w-full md:w-auto">
+          <AppSelect
+            className="w-full sm:w-[200px] md:w-[250px] lg:w-[300px]"
+            placeholder="Filter by activity"
+            value={activityFilter || "all"}
+            onChange={(val) => setActivityFilter(val === "all" ? null : val)}
+            options={[
+              { label: "All activity", value: "all" },
+              { label: "Active", value: "true" },
+              { label: "Inactive", value: "false" },
+            ]}
+          />
+          {/* status */}
+          <AppSelect
+            className="w-full sm:w-[200px] md:w-[250px] lg:w-[300px]"
+            placeholder="Filter by status"
+            value={statusFilter || "all"}
+            onChange={(val) => setStatusFilter(val === "all" ? null : val)}
+            options={[
+              { label: "All status", value: "all" },
+              { label: "Pending", value: "1" },
+              { label: "Verified", value: "2" },
+              { label: "Rejected", value: "3" },
+            ]}
+          />
+
+
+          {/* search */}
+          <div className="w-full border-b-2 md:border-b-0 sm:w-[200px] md:w-[250px] lg:w-[300px]">
+            <SearchInput handlesearch={handlesearch} />
+          </div>
+        </div>
       </div>
+      {
+        data.length > 0 ?
 
-      <div className="flex justify-end gap-5 -mt-10 items-center">
-        {/* Filter by activity */}
-        <AppSelect
-          className="w-[300px]"
-          placeholder="Filter by activity"
-          value={activityFilter || "all"}
-          onChange={(val) => setActivityFilter(val === "all" ? null : val)}
-          options={[
-            { label: "Filter by activity", value: "all" },
-            { label: "Active", value: "true" },
-            { label: "Inactive", value: "false" },
-          ]}
-        />
-
-        {/* Filter by status */}
-        <AppSelect
-          className="w-[300px]"
-          placeholder="Filter by status"
-          value={statusFilter || "all"}
-          onChange={(val) => setStatusFilter(val === "all" ? null : val)}
-          options={[
-            { label: "Filter by status", value: "all" },
-            { label: "Pending", value: "1" },
-            { label: "Verified", value: "2" },
-            { label: "Rejected", value: "3" },
-          ]}
-        />
-
-        {/* Search input */}
-        <SearchInput handlesearch={handlesearch} />
-      </div>
-
-      <table className="w-full table-fixed text-sm dark:text-white shadow-md bg-white dark:bg-stone-800 rounded-xl overflow-hidden">
-        <thead className="dark:bg-stone-700 bg-emerald-700 text-white">
-          <tr className="[&>th]:px-4 [&>th]:py-3 [&>th]:text-center">
-            <th>Domain</th>
-            <th>Status</th>
-            <th>Active</th>
-            <th>Created</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredData.length > 0 ? (
-            filteredData.map((value) => (
-              <tr
-                key={value.id}
-                className="[&>td]:px-4 [&>td]:py-3 border-b border-stone-200 hover:bg-gray-100 text-center transition-colors duration-200"
-              >
-                <td>{value.domain}</td>
-
-                {/* Status */}
-                <td>
-                  <span
-                    className={`inline-block px-3 py-1 text-xs font-semibold rounded-full transition-all duration-300
-                    ${value.status === 1
-                        ? "bg-yellow-100 text-yellow-600"
-                        : value.status === 2
-                          ? "bg-sky-200 text-sky-600"
-                          : value.status === 3
-                            ? "bg-pink-200 text-pink-600"
-                            : "bg-gray-200 text-gray-800"
-                      }`}
-                  >
-                    {value.status === 1
-                      ? "Pending"
-                      : value.status === 2
-                        ? "Verified"
-                        : value.status === 3
-                          ? "Rejected"
-                          : "Unknown"}
-                  </span>
-                </td>
-
-                {/* Active */}
-                <td>
-                  <span
-                    className={`inline-block px-3 py-1 text-xs font-semibold rounded-full transition-all duration-300
-                    ${value.isActive
-                        ? "bg-green-500/20 text-green-600"
-                        : "bg-gray-200 text-gray-600"
-                      }`}
-                  >
-                    {value.isActive ? "Active" : "Inactive"}
-                  </span>
-                </td>
-
-                {/* Created date */}
-                <td>{moment(value.createdDate).format('YYYY-MM-DD hh:mm:ss A')}</td>
-
-                {/* Actions */}
-                <td>
-                  <Tooltip content="Edit" color="green">
-                    <button
-                      onClick={() => {
-                        setOpen(true);
-                        setSelectedItem(value);
-                      }}
-                      className="text-emerald-700 mx-1"
+          <div className="overflow-x-auto shadow-md rounded-xl">
+            <table className="min-w-[700px] w-full text-sm text-gray-700 dark:text-white bg-white dark:bg-stone-800">
+              <thead className="dark:bg-stone-700 bg-emerald-700 text-white">
+                <tr className="[&>th]:px-3 [&>th]:py-2 sm:[&>th]:px-4 sm:[&>th]:py-3 [&>th]:text-center text-xs sm:text-sm">
+                  <th>#</th>
+                  <th>Domain</th>
+                  <th>Status</th>
+                  <th>Active</th>
+                  <th>Created</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData.length > 0 ? (
+                  filteredData.map((value) => (
+                    <tr
+                      key={value.id}
+                      className="[&>td]:px-3 [&>td]:py-2 sm:[&>td]:px-4 sm:[&>td]:py-3 border-b border-stone-200 hover:bg-gray-100 dark:hover:bg-stone-700 text-center transition-colors duration-200"
                     >
-                      <LiaEditSolid size={17} />
-                    </button>
-                  </Tooltip>
-                  <Tooltip content="Delete" color="red">
-                    <button onClick={() => handleDeleteClick(value.id)} className="text-rose-700">
-                      <BiTrash size={17} />
-                    </button>
-                  </Tooltip>
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={5}>
-                <span className="text-center my-5 items-center flex justify-center">
-                  <p>There is no data.</p>
-                </span>
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+                      <td>{value.id}</td>
+                      <td className="truncate max-w-[150px] sm:max-w-none">{value.domain}</td>
 
-      {/* Confirm delete modal */}
+                      {/* Status */}
+                      <td>
+                        <span
+                          className={`inline-block px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-semibold rounded-full
+                      ${value.status === 1
+                              ? "bg-yellow-100 text-yellow-600"
+                              : value.status === 2
+                                ? "bg-sky-200 text-sky-600"
+                                : value.status === 3
+                                  ? "bg-pink-200 text-pink-600"
+                                  : "bg-gray-200 text-gray-800"
+                            }`}
+                        >
+                          {value.status === 1
+                            ? "Pending"
+                            : value.status === 2
+                              ? "Verified"
+                              : value.status === 3
+                                ? "Rejected"
+                                : "Unknown"}
+                        </span>
+                      </td>
+
+                      {/* Active */}
+                      <td>
+                        <span
+                          className={`inline-block px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-semibold rounded-full
+                      ${value.isActive
+                              ? "bg-green-500/20 text-green-600"
+                              : "bg-gray-200 text-gray-600"
+                            }`}
+                        >
+                          {value.isActive ? "Active" : "Inactive"}
+                        </span>
+                      </td>
+
+                      {/* Created */}
+                      <td className="text-[10px] sm:text-xs">
+                        {moment(value.createdDate).format("YYYY-MM-DD HH:mm")}
+                      </td>
+
+                      {/* Actions */}
+                      <td>
+                        <div className="flex justify-center gap-2">
+                          <Tooltip content="Edit" color="green">
+                            <button
+                              onClick={() => {
+                                setOpen(true);
+                                setSelectedItem(value);
+                              }}
+                              className="text-emerald-700"
+                            >
+                              <LiaEditSolid size={16} />
+                            </button>
+                          </Tooltip>
+
+                          <Tooltip content="Delete" color="red">
+                            <button onClick={() => handleDeleteClick(value.id)} className="text-rose-700">
+                              <BiTrash size={16} />
+                            </button>
+                          </Tooltip>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="text-center py-4">
+                      <p className="text-gray-500 dark:text-gray-300 text-sm">There is no data.</p>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div> :
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+          <span className="text-red-600">
+            <PiSealWarningLight size={40} color=""/>
+          </span>
+
+            <h2 className="text-lg font-semibold text-red-700 dark:text-red-400">
+              There is no domain yet
+            </h2>
+            <p className="text-gray-500 dark:text-gray-300 text-sm mt-1">
+              Try adding a new domain to see results here.
+            </p>
+          </div>}
+
+      {/* delete modal */}
       <ConfirmModal
-        title='DELETE DOMAIN'
-        message={`Are you sure you want to delete this domain?`}
-        confirmText='Yes'
-        cancelText='No'
-        icon={() => (<BiTrash size={20} />)}
+        title="DELETE DOMAIN"
+        message="Are you sure you want to delete this domain?"
+        confirmText="Yes"
+        cancelText="No"
+        icon={() => <BiTrash size={20} />}
         isOpen={showModal}
         onCancel={() => setShowModal(false)}
         onConfirm={handleConfirmDelete}

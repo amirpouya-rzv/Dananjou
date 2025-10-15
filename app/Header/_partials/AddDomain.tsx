@@ -39,28 +39,27 @@ const AddDomain = ({
   const [data, setData] = useState<adddomainType>(initailvalues);
   const [loading, setLoading] = useState(false);
 
-  // ✅ اعتبارسنجی فرم
+  // validation
   const validateForm = () => {
-    // اجباری بودن دامنه
     if (!data.domain.trim()) {
       errorToast("Please enter a domain name.");
       return false;
     }
 
-    // فرمت دقیق دامنه
+    // rgex for domain
     const domainRegex = /^www\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
     if (!domainRegex.test(data.domain.trim())) {
       errorToast("Invalid domain format. Example: www.example.com");
       return false;
     }
 
-    // اعتبارسنجی وضعیت
+    // status validation
     if (![1, 2, 3].includes(data.status)) {
       errorToast("Please select a valid status (Pending, Verified, Rejected).");
       return false;
     }
 
-    // اعتبارسنجی فعال بودن
+    // activity validation
     if (typeof data.isActive !== "boolean") {
       errorToast("Please choose whether the domain is active or inactive.");
       return false;
@@ -69,7 +68,7 @@ const AddDomain = ({
     return true;
   };
 
-  // ✅ ارسال فرم
+  // submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -99,7 +98,7 @@ const AddDomain = ({
     }
   };
 
-  // ✅ مقداردهی اولیه و ویرایش
+  // edit
   useEffect(() => {
     if (selecteItem) {
       setData({
