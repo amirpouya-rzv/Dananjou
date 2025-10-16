@@ -22,7 +22,6 @@ interface AddDomainProps {
   setSelectedItem?: React.Dispatch<React.SetStateAction<domainType>>;
   selecteItem?: domainType;
   refreshList?: () => void;
-  /** 🔹 متن دکمه بازکننده‌ی دیالوگ */
   buttonLabel?: string | React.ReactNode;
 }
 
@@ -32,7 +31,7 @@ const AddDomain = ({
   selecteItem,
   setSelectedItem,
   refreshList,
-  buttonLabel = "+ Add Domain", // مقدار پیش‌فرض اگر نفرستی
+  buttonLabel = "+ Add Domain", 
 }: AddDomainProps) => {
   const initailvalues = {
     domain: "",
